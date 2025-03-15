@@ -1,6 +1,7 @@
 # Environment variables
 # Ignore all .env files
 .env
+.auth/
 
 # Playwright
 node_modules/

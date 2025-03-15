@@ -17,11 +17,6 @@ test.describe('API Mocking Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('https://conduit.bondaracademy.com/');
     await page.waitForTimeout(500);
-
-    await page.getByText('Sign in').click();
-    await page.getByRole('textbox', { name: 'Email' }).fill('pwtest155@test.com');
-    await page.getByRole('textbox', { name: 'Password' }).fill('123456');
-    await page.getByRole('button', { name: 'Sign in' }).click();
   });
 
   test('should display mocked API data correctly', async ({ page }) => {
@@ -72,8 +67,6 @@ test('delete article', async ({ page }) => {
 });
 
 test('create article', async ({ page }) => {
-
-
   await page.getByText('New Article').click();
   await page.getByRole('textbox', { name: 'Article Title' }).fill('This is a test title');
   await page.getByRole('textbox', { name: 'What\'s this article about?' }).fill('This is a test description');
@@ -81,6 +74,7 @@ test('create article', async ({ page }) => {
   await page.getByRole('button', { name: 'Publish Article' }).click();
   const articleResponse = await page.waitForResponse('https://conduit-api.bondaracademy.com/api/articles/');
   const articleResponseBody = await articleResponse.json();
+  await page.waitForTimeout(500);
   const slugId = articleResponseBody.article.slug;
   await expect(page.locator('.navbar-brand'), 'Page header should display the application name').toContainText('conduit');
   await expect(page.locator('h1').first()).toContainText('This is a test title');
