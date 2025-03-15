@@ -70,6 +70,42 @@ test('delete article', async ({ page }) => {
     await expect(page.locator('app-article-list h1').first()).not.toContainText('This is a test title');
   });
 });
+
+test('create article', async ({ page }) => {
+
+
+  await page.getByText('New Article').click();
+  await page.getByRole('textbox', { name: 'Article Title' }).fill('This is a test title');
+  await page.getByRole('textbox', { name: 'What\'s this article about?' }).fill('This is a test description');
+  await page.getByRole('textbox', { name: 'Write your article (in markdown)' }).fill('This is a test body');
+  await page.getByRole('button', { name: 'Publish Article' }).click();
+  const articleResponse = await page.waitForResponse('https://conduit-api.bondaracademy.com/api/articles/');
+  const articleResponseBody = await articleResponse.json();
+  const slugId = articleResponseBody.article.slug;
+  await expect(page.locator('.navbar-brand'), 'Page header should display the application name').toContainText('conduit');
+  await expect(page.locator('h1').first()).toContainText('This is a test title');
+  await expect(page.locator('p').first()).toContainText('This is a test body');
+
+  const apiContext = await request.newContext();
+  const loginResponse = await apiContext.post('https://conduit-api.bondaracademy.com/api/users/login', {
+    data: {
+      user: {email: "pwtest155@test.com", password: "123456"}
+    }
+  });
+  const token = await loginResponse.json();
+  
+  await page.addInitScript(token => {
+    window.localStorage.setItem('jwt', token.user.token);
+  }, token);
+  
+  const deleteArticleRequest = await apiContext.delete(`https://conduit-api.bondaracademy.com/api/articles/${slugId}`, {
+    headers: {
+      'Authorization': `Token ${token.user.token}`
+    }
+  }).then(async (response) => {
+    expect(response.ok());
+  });
+});
 });
 
 /**
