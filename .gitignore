@@ -1,4 +1,5 @@
-
+# Environment variables
+# Ignore all .env files
 .env
 
 # Playwright
