@@ -30,3 +30,4 @@ Clone the repository and install dependencies:
 git clone https://github.com/illidanjkeee/pw-apitest-app.git
 cd pw-apitest-app
 npm install
+```
