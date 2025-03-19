@@ -15,21 +15,28 @@ interface ArticlesResponse {
 
 test.describe("API Mocking Tests", () => {
   test.beforeEach(async ({ page }) => {
+    // Enable verbose API logging
+    page.on("request", (request) =>
+      console.log(`>> ${request.method()} ${request.url()}`),
+    );
+    page.on("response", (response) =>
+      console.log(`<< ${response.status()} ${response.url()}`),
+    );
+
     await page.goto("https://conduit.bondaracademy.com/");
     await page.waitForTimeout(500);
   });
 
   test("should display mocked API data correctly", async ({ page }) => {
-    // Set up API mocks before interaction
+    console.log("Starting mock API test");
     await setupApiMocks(page);
 
-    // Verify the page header is correct
     await expect(
       page.locator(".navbar-brand"),
       "Page header should display the application name",
     ).toContainText("conduit");
 
-    // Verify that our mocked article data appears correctly
+    console.log("Checking mocked article data");
     await expect(
       page.locator("app-article-list h1").first(),
       "Article title should match our mocked data",
@@ -41,6 +48,7 @@ test.describe("API Mocking Tests", () => {
   });
 
   test("delete article", async ({ page }) => {
+    console.log("Starting delete article test");
     const apiContext = await request.newContext();
     const articleResponse = await apiContext.post(
       "https://conduit-api.bondaracademy.com/api/articles/",
@@ -55,9 +63,14 @@ test.describe("API Mocking Tests", () => {
         },
       },
     );
+    console.log("Article creation response:", articleResponse.status());
     expect(articleResponse.ok());
 
     await page.getByText("Global Feed").click();
+
+    // Debug snapshot
+    await page.screenshot({ path: "debug-delete-article.png" });
+
     await expect(
       page.locator(".navbar-brand"),
       "Page header should display the application name",
@@ -77,8 +90,11 @@ test.describe("API Mocking Tests", () => {
   });
 
   test("create and cleanup article", async ({ page }) => {
-    // Step 1: Create an article through the UI
+    console.log("Starting create and cleanup test");
     await page.getByText("New Article").click();
+
+    // Add debug points for form filling
+    console.log("Filling article form");
     await page
       .getByRole("textbox", { name: "Article Title" })
       .fill("This is a test title");
@@ -88,17 +104,20 @@ test.describe("API Mocking Tests", () => {
     await page
       .getByRole("textbox", { name: "Write your article (in markdown)" })
       .fill("This is a test body");
+
+    // Take a screenshot before submitting
+    await page.screenshot({ path: "debug-before-publish.png" });
+
     await page.getByRole("button", { name: "Publish Article" }).click();
 
-    // Step 2: Capture the API response to get the article slug
     const articleResponse = await page.waitForResponse(
       "https://conduit-api.bondaracademy.com/api/articles/",
     );
     const articleResponseBody = await articleResponse.json();
+    console.log("Article creation response:", articleResponseBody);
     expect(articleResponse.ok()).toBeTruthy();
     const slugId = articleResponseBody.article.slug;
 
-    // Step 3: Verify the article was created correctly
     await expect(page.locator(".navbar-brand")).toContainText("conduit");
     await expect(page.locator("h1").first()).toContainText(
       "This is a test title",
@@ -107,12 +126,11 @@ test.describe("API Mocking Tests", () => {
       "This is a test body",
     );
 
-    // // Step 4: Clean up - delete the article via API
     const apiContext = await request.newContext();
     const deleteResponse = await apiContext.delete(
       `https://conduit-api.bondaracademy.com/api/articles/${slugId}`,
     );
-
+    console.log("Article deletion response:", deleteResponse.status());
     expect(deleteResponse.ok()).toBeTruthy();
   });
 });
