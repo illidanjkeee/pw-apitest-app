@@ -76,7 +76,7 @@ test.describe("API Mocking Tests", () => {
       "Page header should display the application name",
     ).toContainText("conduit");
     await expect(page.locator("app-article-list h1").first()).toContainText(
-      "This is a test title",
+      /test title/,
     );
     await expect(page.locator("app-article-list p").first()).toContainText(
       "This is a test description",
@@ -93,11 +93,13 @@ test.describe("API Mocking Tests", () => {
     console.log("Starting create and cleanup test");
     await page.getByText("New Article").click();
 
+    const randomTitle = generateRandomTitle();
+
     // Add debug points for form filling
     console.log("Filling article form");
     await page
       .getByRole("textbox", { name: "Article Title" })
-      .fill("This is a test title");
+      .fill(randomTitle);
     await page
       .getByRole("textbox", { name: "What's this article about?" })
       .fill("This is a test description");
@@ -119,9 +121,7 @@ test.describe("API Mocking Tests", () => {
     const slugId = articleResponseBody.article.slug;
 
     await expect(page.locator(".navbar-brand")).toContainText("conduit");
-    await expect(page.locator("h1").first()).toContainText(
-      "This is a test title",
-    );
+    await expect(page.locator("h1").first()).toContainText(randomTitle);
     await expect(page.locator("p").first()).toContainText(
       "This is a test body",
     );
@@ -182,4 +182,8 @@ async function mockArticlesApi(page) {
       await route.continue();
     }
   });
+}
+
+function generateRandomTitle() {
+  return `Test Title ${Math.random().toString(36).substring(2, 7)}`;
 }
