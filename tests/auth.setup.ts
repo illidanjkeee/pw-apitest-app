@@ -1,4 +1,4 @@
-import { test as setup, request } from "@playwright/test";
+import { test as setup, request, APIResponse } from "@playwright/test";
 import user from "../.auth/user.json";
 import fs from "fs";
 
@@ -22,7 +22,7 @@ setup("Authentication Setup", async ({ page }) => {
    * @property {string} response.data.user.image - URL to user's profile image
    */
   // Make POST request to login endpoint with user credentials
-  const loginResponse = await apiContext.post(
+  const loginResponse: APIResponse = await apiContext.post(
     "https://conduit-api.bondaracademy.com/api/users/login",
     {
       data: {

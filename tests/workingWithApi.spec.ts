@@ -15,7 +15,6 @@ interface ArticlesResponse {
 
 test.describe("API Mocking Tests", () => {
   test.beforeEach(async ({ page }) => {
-    // Enable verbose API logging
     page.on("request", (request) =>
       console.log(`>> ${request.method()} ${request.url()}`),
     );
